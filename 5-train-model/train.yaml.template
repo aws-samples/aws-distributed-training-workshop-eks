@@ -1,0 +1,49 @@
+apiVersion: elastic.pytorch.org/v1alpha1
+kind: ElasticJob
+metadata:
+  name: cifar10-train
+spec:
+  rdzvEndpoint: etcd-service:2379
+  minReplicas: 1
+  maxReplicas: 128
+  replicaSpecs:
+    Worker:
+      replicas: ${NODE_COUNT}
+      restartPolicy: ExitCode
+      template:
+        apiVersion: v1
+        kind: Pod
+        spec:
+          nodeSelector:
+            beta.kubernetes.io/instance-type: ${NODE_TYPE}
+          containers:
+            - name: elasticjob-worker
+              image: ${REGISTRY}${IMAGE}${TAG}
+              imagePullPolicy: Always
+              command: ["torchrun"]
+              args:
+                - "--nproc_per_node=1"
+                - "/workspace/cifar10-model-train.py"
+                - "--epochs=10"
+                - "--batch-size=128"
+                - "--workers=${CPU_LIMIT}"
+                - "--model-file=${MOUNT_PATH}/cifar10-model.pth"
+                - "${MOUNT_PATH}/cifar-10-batches-py/"
+              resources:
+                limits:
+                  cpu: ${CPU_LIMIT}
+                  #nvidia.com/gpu: 4
+              volumeMounts:
+                - name: efs-pv
+                  mountPath: ${MOUNT_PATH}
+                # The following enables the worker pods to use increased shared memory 
+                # which is required when specifying more than 0 data loader workers
+                - name: dshm
+                  mountPath: /dev/shm
+          volumes:
+            - name: efs-pv
+              persistentVolumeClaim:
+                claimName: efs-pvc
+            - name: dshm
+              emptyDir:     
+                medium: Memory

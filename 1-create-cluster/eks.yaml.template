@@ -1,0 +1,31 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: ${CLUSTER_NAME}
+  version: "1.21"
+  region: ${REGION}
+
+availabilityZones:
+  - ${AZ1}
+  - ${AZ2}
+
+iam:
+  withOIDC: true
+
+managedNodeGroups:
+  - name: wks-node
+    instanceType: ${NODE_TYPE}
+    instancePrefix: workshop
+    privateNetworking: true
+    availabilityZones: ["${AZ1}","${AZ2}"]
+    efaEnabled: false
+    minSize: 0
+    desiredCapacity: ${NODE_COUNT}
+    maxSize: 10
+    volumeSize: 900
+    iam:
+      withAddonPolicies:
+        cloudWatch: true
+        autoScaler: true
+        ebs: true

@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cifar10-test
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        beta.kubernetes.io/instance-type: ${NODE_TYPE}
+      containers:
+        - name: test
+          image: ${REGISTRY}${IMAGE}${TAG}
+          imagePullPolicy: Always
+          command: ["python3"]
+          args:
+            - "/workspace/cifar10-model-test.py"
+            - "--model-file=${MOUNT_PATH}/cifar10-model.pth"
+            - "--batch-size=128"
+            - "--workers=1"
+            - "${MOUNT_PATH}/cifar-10-batches-py/"
+          volumeMounts:
+            - name: efs-pv
+              mountPath: ${MOUNT_PATH} 
+      volumes:
+        - name: efs-pv
+          persistentVolumeClaim:
+            claimName: efs-pvc

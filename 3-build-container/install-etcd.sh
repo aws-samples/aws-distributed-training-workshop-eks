@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# THIRD-PARTY-LICENSES file in the root directory of this source tree.
+
+set -e
+
+usage() { echo "Usage: $0 [-v <etcd ver>] [-d <install bin dir>]"; exit 2; }
+
+ETCD_VER="v3.4.3"
+BIN_DIR="/usr/local/bin"
+
+while getopts v:d: opts; do
+  case ${opts} in
+    v) ETCD_VER=v${OPTARG} ;;
+    d) BIN_DIR=${OPTARG} ;;
+    *) usage ;;
+  esac
+done
+
+echo "Installing etcd ${ETCD_VER} to ${BIN_DIR}"
+
+BASE_DOWNLOAD_URL=https://github.com/etcd-io/etcd/releases/download
+ETCD_TAR_NAME="etcd-${ETCD_VER}-linux-amd64.tar.gz"
+DOWNLOAD_URL="${BASE_DOWNLOAD_URL}/${ETCD_VER}/${ETCD_TAR_NAME}"
+
+TMP_DIR="/tmp/etcd-${ETCD_VER}"
+rm -rf "${TMP_DIR}" && mkdir -p "${TMP_DIR}"
+
+echo "Downloading pre-built binary from ${DOWNLOAD_URL}"
+wget "${DOWNLOAD_URL}" -O "${TMP_DIR}/${ETCD_TAR_NAME}"
+tar xzf "${TMP_DIR}/${ETCD_TAR_NAME}" -C "${TMP_DIR}" --strip-components=1
+
+mkdir -p "${BIN_DIR}"
+cp -p "${TMP_DIR}/etcd" "${BIN_DIR}"
+cp -p "${TMP_DIR}/etcdctl" "${BIN_DIR}"
+
+rm -rf "${TMP_DIR}"
+
+echo "------------------------"
+"${BIN_DIR}/etcd" -version
+echo "------------------------"
+"${BIN_DIR}/etcdctl" version
+echo "------------------------"
+
+echo "Finished installing etcd ${ETCD_VER}. To use: ${BIN_DIR}/(etcd | etcdctl)"
