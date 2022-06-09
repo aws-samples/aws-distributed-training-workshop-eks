@@ -45,7 +45,7 @@ Default output format [None]: json
 Generating cluster configuration eks.yaml ...
 ```
 
-Cloud9 uses AWS managed temporary credentials, which we override with the script. As soon as the script completes, Cloud8 will display the following dialog.
+Cloud9 uses AWS managed temporary credentials, which we override with the script. As soon as the script completes, Cloud9 will display the following dialog.
 
 <center>
 <img src="img/cloud9-credentials-dialog.png" width="40%"/> 
@@ -424,7 +424,7 @@ efs-data-prep-pod       0/1     ContainerCreating   0          3s
 The data-prep pod status changes from ContainerCreating, to Running, to Complete. To show the current status, execute:
 
 ```console
-4-2-show-status.sh
+./4-2-show-status.sh
 ```
 
 Output:
@@ -570,7 +570,7 @@ Next we will launch the ElasticJob by applying the generated manifest.
 
 Execute:
 ```console
-./5-2-launch-elastic-job.sh
+./5-2-launch-elasticjob.sh
 ```
 
 Output:
