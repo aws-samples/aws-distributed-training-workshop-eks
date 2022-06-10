@@ -1,6 +1,4 @@
 import os
-import pickle
-import numpy as np
 from datetime import timedelta
 import argparse
 
@@ -39,19 +37,6 @@ parser.add_argument("--checkpoint-file", default="/efs-shared/checkpoint.pth.tar
                     help="checkpoint file path, to load and save to")
 
 
-def get_tensordataset(images, labels):
-    images_arr = np.array(images)
-    images_arr = np.reshape(images_arr, (-1,3,32,32))
-    labels_arr = np.array(labels)
-    images_arr = images_arr/255.  # normalize
-
-    tensor_X = torch.tensor(images_arr, dtype=torch.float32)
-    tensor_y = torch.tensor(labels_arr, dtype=torch.long)
-    dataset = TensorDataset(tensor_X, tensor_y)
-
-    return dataset
-
-
 def cifar10_train_dataloader(data_dir, batch_size, num_data_workers):
     files = ['data_batch_'+str(i+1) for i in range(5)]
 
@@ -62,6 +47,7 @@ def cifar10_train_dataloader(data_dir, batch_size, num_data_workers):
         train_images.extend(images)
         train_labels.extend(labels)
 
+    # convert numpy arrays to torch TensorDataset
     train_dataset = get_tensordataset(train_images, train_labels)
     
     train_sampler = ElasticDistributedSampler(train_dataset)
