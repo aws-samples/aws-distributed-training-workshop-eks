@@ -1,12 +1,8 @@
 import os
-from datetime import timedelta
 import argparse
 
 import torch
 from torch.utils.data import DataLoader
-from torchvision import datasets, models
-from torch.nn.parallel import DistributedDataParallel
-from torch.distributed import init_process_group
 
 from cnn_model import MyCnnModel # custom cnn model
 from utils import *
