@@ -3,13 +3,11 @@ from datetime import timedelta
 import argparse
 
 import torch
-from torch.utils.data import TensorDataset, DataLoader
-from torchvision import datasets, models
-
-import torch.nn as nn
+from torch.nn import CrossEntropyLoss
+from torch.optim import SGD
+from torch.utils.data import DataLoader
 from torch.nn.parallel import DistributedDataParallel
 from torch.distributed.elastic.utils.data import ElasticDistributedSampler
-from torch.optim import SGD
 from torch.distributed import init_process_group
 
 from cnn_model import MyCnnModel # custom cnn model
@@ -49,7 +47,7 @@ def cifar10_train_dataloader(data_dir, batch_size, num_data_workers):
 
     # convert numpy arrays to torch TensorDataset
     train_dataset = get_tensordataset(train_images, train_labels)
-    
+
     train_sampler = ElasticDistributedSampler(train_dataset)
     train_loader = DataLoader(
         train_dataset,
@@ -58,7 +56,7 @@ def cifar10_train_dataloader(data_dir, batch_size, num_data_workers):
         pin_memory=True,
         sampler=train_sampler,
     )
-    
+
     return train_loader
 
 
@@ -66,7 +64,7 @@ def initialize_model(lr, momentum, weight_decay):
     model = MyCnnModel()
     model = DistributedDataParallel(model)
 
-    criterion = nn.CrossEntropyLoss()
+    criterion = CrossEntropyLoss()
     optimizer = SGD(model.parameters(), lr, momentum=momentum, weight_decay=weight_decay)
 
     return model, criterion, optimizer
