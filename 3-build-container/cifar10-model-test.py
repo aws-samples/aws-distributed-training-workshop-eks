@@ -1,48 +1,30 @@
 import os
-import pickle
-import numpy as np
 from datetime import timedelta
 import argparse
 
 import torch
-from torch.utils.data import TensorDataset, DataLoader
+from torch.utils.data import DataLoader
 from torchvision import datasets, models
 from torch.nn.parallel import DistributedDataParallel
 from torch.distributed import init_process_group
 
 from cnn_model import MyCnnModel # custom cnn model
+from utils import *
 
 parser = argparse.ArgumentParser(description="PyTorch Elastic cifar10 Training")
 parser.add_argument("data", metavar="DIR", help="path to dataset")
-parser.add_argument('--workers', default=32, type=int,
-                    help='number of data loading workers (default: 32)')
+parser.add_argument('--workers', default=1, type=int,
+                    help='number of data loading workers (default: 1)')
 parser.add_argument('--batch-size', default=128, type=int,
                     help='mini-batch size on each node (default: 128)')
 parser.add_argument('--model-file', default='/efs-shared/cifar10_model.pth', type=str,
                     help='filename with path to save model (default: /efs-shared/cifar10_model.pth')
 
 
-def unpickle(file):
-    with open(file, 'rb') as fo:
-        data = pickle.load(fo, encoding='bytes')
-    return data[b'data'], data[b'labels']
-
-
-def get_tensordataset(images, labels):
-    images_arr = np.array(images)
-    images_arr = np.reshape(images_arr, (-1,3,32,32))
-    labels_arr = np.array(labels)
-    images_arr = images_arr/255.  # normalize
-
-    tensor_X = torch.tensor(images_arr, dtype=torch.float32)
-    tensor_y = torch.tensor(labels_arr, dtype=torch.long)
-    dataset = TensorDataset(tensor_X, tensor_y)
-
-    return dataset
-
-
 def cifar10_test_dataloader(data_dir, batch_size, num_data_workers):
     test_images, test_labels = unpickle(data_dir + 'test_batch')
+
+    # convert numpy arrays to torch TensorDataset
     test_dataset = get_tensordataset(test_images, test_labels)
     
     test_loader = DataLoader(
