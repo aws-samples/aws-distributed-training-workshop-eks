@@ -18,6 +18,14 @@ This workshop is organized in a number of sequential steps. The scripts that bel
 Before we get started, we need to set up an AWS account and Cloud9 IDE from which we will execute all the steps in the workshop. You will not be required to install anything on your computer. All of the steps in the workshop will be completed on the cloud through your browser. To set up your account and IDE, please follow the instructions in [SETUP.md](SETUP.md).
 
 ## 1. Create EKS Cluster
+
+<center><img src="img/step-1-create-cluster.png" width="80%"/> </br>
+
+Fig. 1.0 - Step 1 - Create EKS cluster
+</center>
+
+In this step we will execute scripts to create a managed [Kubernetes](https://kubernetes.io) cluster using the Amazon Elastic Kubernetes Service ([EKS](https://aws.amazon.com/eks)). Later we will use this cluster to run our distributed model training job.
+
 In the last part of your prerequisites setup, you cloned the workshop code into your Cloud9 IDE. To build our distributed training infrastructure on EKS, we will start by changing the current directory to `1-create-cluster`.
 
 ```console
@@ -222,6 +230,12 @@ deployment.apps/etcd created
 The EKS cluster is now provisioned and prepared to run distributed training jobs.
 
 ## 2. Create Shared Volume
+
+<center><img src="img/step-2-create-volume.png" width="80%"/> </br>
+
+Fig. 2.0 - Step 2 - Create shared volume
+</center>
+
 With distributed data parallel training, all workers need to have access to the training data. We can achieve that by creating a shared volume which can be mounted in each of the worker pods.
 
 To create a shared volume, we will use the scripts in the directory for step 2.
@@ -311,14 +325,20 @@ Done.
 ```
 
 ## 3. Build Deep Learning Container
-In this step, we will build a container that has code to train our PyTorch model.
-This step will be executed in directory `3-build-container`.
+
+<center><img src="img/step-3-build-container.png" width="80%"/> </br>
+
+Fig. 3.0 - Step 3 - Build deep learning container
+</center>
+
+In this step, we will build a container that has code to train our PyTorch model. 
+To do that we need to change the current directory to `3-build-container`.
 
 ```console
 cd ../3-build-container
 ```
 
-Please note that this folder contains a Dockerfile, python and shell scripts. We will only need to execute the scripts that start with 3-*.
+Please note that this folder contains a Dockerfile, python and shell scripts. We will only need to execute the scripts that start with `3-*`.
 
 ### 3.1. Build container image
 
@@ -395,6 +415,12 @@ latest: digest: sha256:a7bc0842b2681a84ebbfeda35096d8d8f09baffdb0e8ce9d42d6b3f9d
 ```
 
 ## 4. Download and Preprocess Image Dataset
+
+<center><img src="img/step-4-get-data.png" width="80%"/> </br>
+
+Fig. 4.0 - Step 4 - Download data
+</center>
+
 In this step we will run a pod which mounts the persistent volume and downloads the [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html) dataset on it.
 We will execute the scripts from directory `4-get-data`.
 
@@ -497,6 +523,12 @@ Saving to: 'cifar-10-python.tar.gz'
 The last message showing the dataset was saved, indicates a successful download.
 
 ## 5. Train Image Classification Model
+
+<center><img src="img/step-5-train-model.png" width="80%"/> </br>
+
+Fig. 5.0 - Step 5 - Distributed data-parallel model training
+</center>
+
 Next we will execute the model training scripts from directory `5-train-model`.
 
 ```console
@@ -711,7 +743,13 @@ elasticjob.elastic.pytorch.org "cifar10-train" deleted
 Note: when starting a new job instance if the workers fail to start with errors indicating failure to connect to the rendez-vous service, please delete the etcd pod as well before starting the elastic job.
 
 ## 6. Test Model using New Images
-This step will be executed from directory 6-test-model.
+
+<center><img src="img/step-6-test-model.png" width="80%"/> </br>
+
+Fig. 6.0 - Step 6 - Test model
+</center>
+
+This step will be executed from directory `6-test-model`.
 
 ```console
 cd ../6-test-model
@@ -831,7 +869,13 @@ job.batch "cifar10-test" deleted
 ### 6.6. Optional exercise
 We have run distributed training on two nodes. Edit the autoscaling group to set the desired number of nodes to 4, then modify the configuration file `.env` to reflect the new number of nodes and re-run the training job. You will notice that the time to run 10 epochs decreases as the workload gets distributed among more nodes.
 
-## 7. Cleanup
+## 7. Cleanup (optional)
+
+<center><img src="img/step-7-cleanup.png" width="80%"/> </br>
+
+Fig. 7.0 - Step 7 - Cleanup
+</center>
+
 Optionally you can execute the scripts in the cleanup folder to delete the shared storage volume and the EKS cluster you created for this workshop.
 
 ```console
