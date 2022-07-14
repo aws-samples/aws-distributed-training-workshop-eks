@@ -4,6 +4,9 @@ metadata:
   name: cifar10-cleanup
 spec:
   template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
     spec:
       restartPolicy: Never
       nodeSelector:

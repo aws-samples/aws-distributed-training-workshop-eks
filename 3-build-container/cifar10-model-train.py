@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader
 from torch.nn.parallel import DistributedDataParallel
 from torch.distributed.elastic.utils.data import ElasticDistributedSampler
 from torch.distributed import init_process_group
+from torch.utils.tensorboard import SummaryWriter
 
 from cnn_model import MyCnnModel # custom cnn model
 from utils import *
@@ -71,9 +72,13 @@ def initialize_model(lr, momentum, weight_decay):
 
 
 def main():
+    #import debugpy; debugpy.listen(('0.0.0.0',5678)); debugpy.wait_for_client(); breakpoint()
     init_process_group(backend="gloo", init_method="env://", timeout=timedelta(seconds=10))
     args = parser.parse_args()
     rank = int(os.environ["RANK"])
+    modelFile = args.model_file
+    tensorDir = "%s/runs/"%(os.path.dirname(modelFile))
+    writer = SummaryWriter(log_dir=tensorDir)
 
     print("reading", args.data)
     train_loader = cifar10_train_dataloader(args.data, args.batch_size, args.workers)
@@ -101,15 +106,19 @@ def main():
             running_loss += loss.item()
             if i % args.print_freq == args.print_freq-1:    # print every args.print_freq mini-batches
                 print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / args.print_freq:.3f}')
+                writer.add_scalar('Epoch', epoch+1)
+                writer.add_scalar('Iteration', i+1)
+                writer.add_scalar('Loss', running_loss / args.print_freq)
                 running_loss = 0.0
             
         if rank==0: # Only one pod will save the checkpoint
             save_checkpoint(args.checkpoint_file, epoch, model, optimizer)
 
-    if rank==0:  # Only one pod will save the checkpoint
+    if rank==0:  # Only one pod will save the final model
         print('saving final model:', args.model_file)
         torch.save(model.module.state_dict(), args.model_file)
-
+    
+    writer.close()
 
 if __name__ == "__main__":
     main()
