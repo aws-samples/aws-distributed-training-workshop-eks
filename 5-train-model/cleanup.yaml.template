@@ -15,7 +15,7 @@ spec:
         - name: test
           image: ${REGISTRY}${IMAGE}${TAG}
           imagePullPolicy: Always
-          command: ["/bin/bash", "-c", "if [ -f ${MOUNT_PATH}/checkpoint.pth.tar ]; then echo Cleaning up checkpoint; rm -vf ${MOUNT_PATH}/checkpoint.pth.tar; else echo Checkpoint is already clean; fi"]
+          command: ["/bin/bash", "-c", "if [ -f ${MOUNT_PATH}/checkpoint.pth.tar ]; then echo Cleaning up checkpoint; rm -vf ${MOUNT_PATH}/checkpoint.pth.tar; else echo Checkpoint is already clean; fi; if [ -d ${MOUNT_PATH}/runs ]; then echo Cleaning up tensorboard logs; rm -rvf ${MOUNT_PATH}/runs; else echo Tensorboard logs are already clean; fi"]
           volumeMounts:
             - name: efs-pv
               mountPath: ${MOUNT_PATH} 

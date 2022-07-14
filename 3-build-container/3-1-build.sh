@@ -3,5 +3,5 @@
 . ../.env
 
 # Build Docker image
-docker image build -t ${REGISTRY}${IMAGE}${TAG} .
+docker image build -f Dockerfile-${PROCESSOR} -t ${REGISTRY}${IMAGE}${TAG} .
 

@@ -32,10 +32,15 @@ spec:
                 - "--workers=${CPU_LIMIT}"
                 - "--model-file=${MOUNT_PATH}/cifar10-model.pth"
                 - "${MOUNT_PATH}/cifar-10-batches-py/"
+              env:
+                - name: PROCESSOR
+                  value: "${PROCESSOR}"
+              ports:
+                - containerPort: 5678
               resources:
                 limits:
                   cpu: ${CPU_LIMIT}
-                  #nvidia.com/gpu: 4
+                  nvidia.com/gpu: 1
               volumeMounts:
                 - name: efs-pv
                   mountPath: ${MOUNT_PATH}

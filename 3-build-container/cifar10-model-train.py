@@ -84,6 +84,22 @@ def main():
     train_loader = cifar10_train_dataloader(args.data, args.batch_size, args.workers)
     model, criterion, optimizer = initialize_model(args.learning_rate, args.momentum, args.weight_decay)
 
+    processor = os.getenv("PROCESSOR","cpu")
+    print("Desired processor type: %s"%processor)
+
+    device_type="cpu"
+    device=torch.device("cpu")
+
+    if processor == "gpu":
+        if torch.cuda.is_available():
+            device=torch.device("cuda")
+            device_type="gpu"
+            model.to(device)
+        else:
+            print("torch.cuda.is_available() returned False!")
+
+    print("Running on processor type: %s"%(device_type))
+    
     start_epoch = 0
     # load previously stored checkpoint if it exists.
     start_epoch = load_checkpoint(args.checkpoint_file, model, optimizer)
@@ -97,6 +113,9 @@ def main():
             optimizer.zero_grad()
 
             # forward + backward + optimize
+            if device_type == "gpu":
+              inputs = inputs.to(device)
+              labels = labels.to(device)
             outputs = model(inputs)
             loss = criterion(outputs, labels)
             loss.backward()
