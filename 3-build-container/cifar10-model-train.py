@@ -73,7 +73,7 @@ def initialize_model(lr, momentum, weight_decay):
 
 def main():
     print("Main function called ...")
-    import debugpy; debugpy.listen(('0.0.0.0',5678)); debugpy.wait_for_client(); breakpoint()
+    #import debugpy; debugpy.listen(('0.0.0.0',5678)); debugpy.wait_for_client(); breakpoint()
     init_process_group(backend="gloo", init_method="env://", timeout=timedelta(seconds=10))
     args = parser.parse_args()
     rank = int(os.environ["RANK"])
