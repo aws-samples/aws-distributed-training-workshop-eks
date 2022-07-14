@@ -27,8 +27,8 @@ spec:
               args:
                 - "--nproc_per_node=1"
                 - "/workspace/cifar10-model-train.py"
-                - "--epochs=10"
-                - "--batch-size=128"
+                - "--epochs=${EPOCHS}"
+                - "--batch-size=${BATCH_SIZE}"
                 - "--workers=${CPU_LIMIT}"
                 - "--model-file=${MOUNT_PATH}/cifar10-model.pth"
                 - "${MOUNT_PATH}/cifar-10-batches-py/"
