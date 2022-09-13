@@ -21,7 +21,7 @@ MOUNT_TARGET_GROUP_DESC="NFS access to EFS from EKS worker nodes"
 aws ec2 create-security-group --group-name $MOUNT_TARGET_GROUP_NAME --description "$MOUNT_TARGET_GROUP_DESC" --vpc-id $VPC_ID
 sleep 5
 
-MOUNT_TARGET_GROUP_ID=$(aws ec2 describe-security-groups --filter Name=vpc-id,Values=$VPC_ID Name=group-name,Values=eks-efs-group --query 'SecurityGroups[*].[GroupId]' --output text)
+MOUNT_TARGET_GROUP_ID=$(aws ec2 describe-security-groups --filter Name=vpc-id,Values=$VPC_ID Name=group-name,Values=$MOUNT_TARGET_GROUP_NAME --query 'SecurityGroups[*].[GroupId]' --output text)
 echo $MOUNT_TARGET_GROUP_NAME $MOUNT_TARGET_GROUP_DESC $MOUNT_TARGET_GROUP_ID
 
 aws ec2 authorize-security-group-ingress --group-id $MOUNT_TARGET_GROUP_ID --protocol tcp --port 2049 --cidr $CIDR_BLOCK
