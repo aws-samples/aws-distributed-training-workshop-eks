@@ -40,7 +40,7 @@ spec:
               resources:
                 limits:
                   cpu: ${CPU_LIMIT}
-                  nvidia.com/gpu: 1
+                  nvidia.com/gpu: ${GPU_LIMIT}
               volumeMounts:
                 - name: efs-pv
                   mountPath: ${MOUNT_PATH}
