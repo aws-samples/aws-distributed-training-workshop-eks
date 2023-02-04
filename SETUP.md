@@ -200,6 +200,16 @@ Fig. 0.19 - Cloud9 IDE with resized volume
 
 Once the instance is restarted, refresh the Cloud9 IDE window and type `df -h` in the terminal window. You should see that the root volume has the size you specified earlier.
 
+Open the IDE Preferences by clicking on the settings icon in the upper-right corner of the screen, or by clicking the Cloud9 icon in the menu and selecting Preferences. Scroll the list of preferences down and selct the `AWS Settings` section. Disable the `AWS managed temporary credentials` setting as shown below.
+
+<div align="center">
+<img src="img/cloud9-managed-credentials.png" width="100%">
+<br/>
+Fig. 0.20 - Disable Cloud9 IDE `AWS managed temporary credentials` setting
+</div>
+<br/>
+
+
 ### 0.5 Clone workshop repository
 
 ```

@@ -53,7 +53,7 @@ Default output format [None]: json
 Generating cluster configuration eks.yaml ...
 ```
 
-Cloud9 uses AWS managed temporary credentials, which we override with the script. As soon as the script completes, Cloud9 will display the following dialog.
+By default, Cloud9 uses AWS managed temporary credentials, which we override with the script. If the managed temporary credentials setting has not been disabled, as soon as the script completes, Cloud9 will display the following dialog.
 
 <center>
 <img src="img/cloud9-credentials-dialog.png" width="40%"/> 
@@ -64,7 +64,7 @@ Cloud9 uses AWS managed temporary credentials, which we override with the script
 Fig. 1.1 Cloud9 credentials dialogs
 </center>
 
-Please click **Cancel** in this dialog, immediatlely another dialog appears. Please click **Permanently disable** in the second dialog.
+Please click **Cancel** in this dialog, immediatlely another dialog appears. Please click **Permanently disable** in the second dialog. If these dialogs do not appear, then AWS managed temporary credentials have already been disabled in your Cloud9 IDE and you may proceed to the next step.
 
 ### 1.2. Install tools
 
