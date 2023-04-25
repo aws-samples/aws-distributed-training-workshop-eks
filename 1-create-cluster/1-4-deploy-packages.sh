@@ -7,13 +7,13 @@ echo ""
 echo "Deploying Kubernetes Metrics Server ..."
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 
-# Torch Elastic
-echo ""
-echo "Deploying Torch Elastic ..."
-kubectl apply -k torch-elastic/default
+# Kubeflow Training Operator
+pushd ./kubeflow-training-operator
+./deploy.sh
+popd
 
 # Etcd
 echo ""
 echo "Deploying etcd ..."
-kubectl apply -f torch-elastic/etcd.yaml
+kubectl apply -f etcd/etcd-deployment.yaml
 
