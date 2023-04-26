@@ -5,7 +5,6 @@
 # eksctl
 echo ""
 echo "Installing eksctl ..."
-#curl --location "https://github.com/weaveworks/eksctl/releases/download/v0.66.0/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
 curl --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
 
 sudo mv /tmp/eksctl /usr/local/bin
@@ -14,7 +13,6 @@ eksctl version
 # kubectl
 echo ""
 echo "Installing kubectl ..."
-#curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.19.6/2021-01-05/bin/linux/amd64/kubectl
 curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.26.2/2023-03-17/bin/linux/amd64/kubectl
 chmod +x ./kubectl
 sudo mv ./kubectl /usr/local/bin
