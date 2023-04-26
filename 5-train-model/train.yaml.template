@@ -1,46 +1,45 @@
-apiVersion: elastic.pytorch.org/v1alpha1
-kind: ElasticJob
+apiVersion: "kubeflow.org/v1"
+kind: PyTorchJob
 metadata:
   name: cifar10-train
 spec:
-  rdzvEndpoint: etcd-service:2379
-  minReplicas: 1
-  maxReplicas: 128
-  replicaSpecs:
+  elasticPolicy:
+    rdzvBackend: etcd
+    rdzvHost: etcd-service
+    rdzvPort: 2379
+    minReplicas: 1
+    maxReplicas: 128
+    maxRestarts: 100
+    metrics:
+      - type: Resource
+        resource:
+          name: cpu
+          target:
+            type: Utilization
+            averageUtilization: 80
+  pytorchReplicaSpecs:
     Worker:
       replicas: ${NODE_COUNT}
-      restartPolicy: ExitCode
+      restartPolicy: OnFailure
       template:
-        apiVersion: v1
-        kind: Pod
-        metadata:
-          annotations:
-            sidecar.istio.io/inject: "false"
         spec:
-          nodeSelector:
-            beta.kubernetes.io/instance-type: ${NODE_TYPE}
           containers:
-            - name: elasticjob-worker
+            - name: pytorch
               image: ${REGISTRY}${IMAGE}${TAG}
-              imagePullPolicy: Always
-              command: ["torchrun"]
-              args:
-                - "--nproc_per_node=1"
-                - "/workspace/cifar10-model-train.py"
+              imagePullPolicy: IfNotPresent
+              env:
+              - name: PROCESSOR
+                value: "${PROCESSOR}"
+              command:
+                - python3
+                - -m
+                - torch.distributed.run
+                - /workspace/cifar10-model-train.py
                 - "--epochs=${EPOCHS}"
                 - "--batch-size=${BATCH_SIZE}"
                 - "--workers=${CPU_LIMIT}"
                 - "--model-file=${MOUNT_PATH}/cifar10-model.pth"
                 - "${MOUNT_PATH}/cifar-10-batches-py/"
-              env:
-                - name: PROCESSOR
-                  value: "${PROCESSOR}"
-              ports:
-                - containerPort: 5678
-              resources:
-                limits:
-                  cpu: ${CPU_LIMIT}
-                  nvidia.com/gpu: ${GPU_LIMIT}
               volumeMounts:
                 - name: efs-pv
                   mountPath: ${MOUNT_PATH}

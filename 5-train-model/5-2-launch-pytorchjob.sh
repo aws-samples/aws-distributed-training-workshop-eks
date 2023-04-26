@@ -1,6 +1,6 @@
 #!/bin/bash
 
 echo ""
-echo "Launching ElasticJob ..."
+echo "Launching PyTorchJob ..."
 kubectl apply -f ./train.yaml
 

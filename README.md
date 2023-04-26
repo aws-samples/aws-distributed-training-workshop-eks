@@ -117,7 +117,7 @@ kind: ClusterConfig
 
 metadata:
   name: do-eks
-  version: "1.21"
+  version: "1.26"
   region: us-west-2
 
 availabilityZones:
@@ -212,15 +212,22 @@ service/metrics-server created
 deployment.apps/metrics-server created
 apiservice.apiregistration.k8s.io/v1beta1.metrics.k8s.io created
 
-Deploying Torch Elastic ...
-namespace/elastic-job created
-Warning: apiextensions.k8s.io/v1beta1 CustomResourceDefinition is deprecated in v1.16+, unavailable in v1.22+; use apiextensions.k8s.io/v1 CustomResourceDefinition
-customresourcedefinition.apiextensions.k8s.io/elasticjobs.elastic.pytorch.org created
-role.rbac.authorization.k8s.io/leader-election-role created
-clusterrole.rbac.authorization.k8s.io/elastic-job-k8s-controller-role created
-rolebinding.rbac.authorization.k8s.io/leader-election-rolebinding created
-clusterrolebinding.rbac.authorization.k8s.io/elastic-job-k8s-controller-rolebinding created
-deployment.apps/elastic-job-k8s-controller created
+Deploying Kubeflow Training Operator ...
+~/update-workshop/1-create-cluster/kubeflow-training-operator ~/update-workshop/1-create-cluster
+namespace/kubeflow created
+customresourcedefinition.apiextensions.k8s.io/mpijobs.kubeflow.org created
+customresourcedefinition.apiextensions.k8s.io/mxjobs.kubeflow.org created
+customresourcedefinition.apiextensions.k8s.io/pytorchjobs.kubeflow.org created
+customresourcedefinition.apiextensions.k8s.io/tfjobs.kubeflow.org created
+customresourcedefinition.apiextensions.k8s.io/xgboostjobs.kubeflow.org created
+serviceaccount/training-operator created
+clusterrole.rbac.authorization.k8s.io/training-operator created
+clusterrolebinding.rbac.authorization.k8s.io/training-operator created
+service/training-operator created
+deployment.apps/training-operator created
+clusterrole.rbac.authorization.k8s.io/hpa-access created
+clusterrolebinding.rbac.authorization.k8s.io/training-operator-hpa-access created
+~/update-workshop/1-create-cluster
 
 Deploying etcd ...
 service/etcd-service created
@@ -534,55 +541,63 @@ Next we will execute the model training scripts from directory `5-train-model`.
 ```console
 cd ../5-train-model
 ```
-### 5.1. Generate ElasticJob
-The Kubernetes manifests in this workshop are generated from templates, based on the configuration stored in file [`./env`](.env). To generate the ElasticJob manifest for our distributed training, execute:
+### 5.1. Generate PyTorchJob
+The Kubernetes manifests in this workshop are generated from templates, based on the configuration stored in file [`./env`](.env). To generate the PyTorchJob manifest for our distributed training, execute:
 
 ```console
-./5-1-generate-elasticjob.sh
+./5-1-generate-pytorchjob.sh
 ```
 
 Output:
 ```
-Generating ElasticJob manifest ...
+Generating PyTorchJob manifest ...
 
-apiVersion: elastic.pytorch.org/v1alpha1
-kind: ElasticJob
+apiVersion: "kubeflow.org/v1"
+kind: PyTorchJob
 metadata:
   name: cifar10-train
 spec:
-  rdzvEndpoint: etcd-service:2379
-  minReplicas: 1
-  maxReplicas: 128
-  replicaSpecs:
+  elasticPolicy:
+    rdzvBackend: etcd
+    rdzvHost: etcd-service
+    rdzvPort: 2379
+    minReplicas: 1
+    maxReplicas: 128
+    maxRestarts: 100
+    metrics:
+      - type: Resource
+        resource:
+          name: cpu
+          target:
+            type: Utilization
+            averageUtilization: 80
+  pytorchReplicaSpecs:
     Worker:
       replicas: 2
-      restartPolicy: ExitCode
+      restartPolicy: OnFailure
       template:
-        apiVersion: v1
-        kind: Pod
         spec:
-          nodeSelector:
-            beta.kubernetes.io/instance-type: c5.4xlarge
           containers:
-            - name: elasticjob-worker
-              image: 620266777012.dkr.ecr.us-west-2.amazonaws.com/pytorch-cpu:latest
-              imagePullPolicy: Always
-              command: ["torchrun"]
-              args:
-                - "--nproc_per_node=1"
-                - "/workspace/cifar10-model-train.py"
+            - name: pytorch
+              image: 999701187340.dkr.ecr.us-west-2.amazonaws.com/pytorch-cpu:latest
+              imagePullPolicy: IfNotPresent
+              env:
+              - name: PROCESSOR
+                value: "cpu"
+              command:
+                - python3
+                - -m
+                - torch.distributed.run
+                - /workspace/cifar10-model-train.py
                 - "--epochs=10"
                 - "--batch-size=128"
+                - "--workers=15"
                 - "--model-file=/efs-shared/cifar10-model.pth"
                 - "/efs-shared/cifar-10-batches-py/"
-              resources:
-                limits:
-                  cpu: 32
-                  #nvidia.com/gpu: 4
               volumeMounts:
                 - name: efs-pv
                   mountPath: /efs-shared
-                # The following enables the worker pods to use increased shared memory 
+                # The following enables the worker pods to use increased shared memory
                 # which is required when specifying more than 0 data loader workers
                 - name: dshm
                   mountPath: /dev/shm
@@ -591,24 +606,24 @@ spec:
               persistentVolumeClaim:
                 claimName: efs-pvc
             - name: dshm
-              emptyDir:     
+              emptyDir:
                 medium: Memory
 ```
 
 The manifest specifies an elastic job named **cifar10-train**. The job is configured to communicate with rendez-vous end point `etcd-service:2379` which is the etcd service we launched in the same namespace. It is also configured to run two workers, each of them on a separate node. Each worker will execute the `torchrun` command and run training for 10 epochs. 
 
-### 5.2. Launch ElasticJob
-Next we will launch the ElasticJob by applying the generated manifest.
+### 5.2. Launch PyTorchJob
+Next we will launch the PyTorchJob by applying the generated manifest.
 
 Execute:
 ```console
-./5-2-launch-elasticjob.sh
+./5-2-launch-pytorchjob.sh
 ```
 
 Output:
 ```
-Launching ElasticJob ...
-elasticjob.elastic.pytorch.org/cifar10-train created
+Launching PyTorchJob ...
+pytorchjob.kubeflow.org/cifar10-train created
 ```
 
 ### 5.3. Show training worker pods status
@@ -731,13 +746,13 @@ If you wish to run another instance of the elastic job, please delete the curren
 
 Execute:
 ```console
-./5-6-delete-elasticjob.sh
+./5-6-delete-pytorchjob.sh
 ```
 
 Output:
 ```
-Deleting ElasticJob ...
-elasticjob.elastic.pytorch.org "cifar10-train" deleted
+Deleting PyTorchJob ...
+pytorchjob.kubeflow.org "cifar10-train" deleted
 ```
 
 Note: when starting a new job instance if the workers fail to start with errors indicating failure to connect to the rendez-vous service, please delete the etcd pod as well before starting the elastic job.

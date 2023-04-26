@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo ""
-echo "Deleting ElasticJob ..."
+echo "Deleting PyTorchJob ..."
 kubectl delete -f ./train.yaml
 
 echo ""
